@@ -3,10 +3,12 @@
 #include <biovoltron/file_io/cigar.hpp>
 
 namespace pairhmm {
-biovoltron::Cigar SuzukiPairHMM::get_cigar() {}
-auto SuzukiPairHMM::get_A() {}
-auto SuzukiPairHMM::get_DeltaH() {}
-auto SuzukiPairHMM::get_DeltaV() {}
-auto SuzukiPairHMM::get_DeltaEp() {}
-auto SuzukiPairHMM::get_DeltaFp() {}
+template <typename T> biovoltron::Cigar SuzukiPairHMM<T>::get_cigar() {
+  return biovoltron::Cigar{};
+}
+template <typename T> table::ProbabilityTable<T> SuzukiPairHMM<T>::get_A() { return A; }
+template <typename T> table::ProbabilityTable<T> SuzukiPairHMM<T>::get_DeltaH() { return DeltaH; }
+template <typename T> table::ProbabilityTable<T> SuzukiPairHMM<T>::get_DeltaV() { return DeltaV; }
+template <typename T> table::ProbabilityTable<T> SuzukiPairHMM<T>::get_DeltaEp() { return DeltaEp; }
+template <typename T> table::ProbabilityTable<T> SuzukiPairHMM<T>::get_DeltaFp() { return DeltaFp; }
 } // namespace pairhmm

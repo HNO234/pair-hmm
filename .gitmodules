@@ -1,3 +1,6 @@
 [submodule "submodule/Biovoltron"]
 	path = submodule/Biovoltron
 	url = ssh://git@gitlab.centrilliontech.com.tw:10022/GeneASIC/Biovoltron.git
+[submodule "submodules/biovoltron"]
+	path = submodules/biovoltron
+	url = ssh://git@gitlab.centrilliontech.com.tw:10022/GeneASIC/Biovoltron.git

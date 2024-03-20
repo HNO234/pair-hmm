@@ -3,8 +3,10 @@
 #include <biovoltron/file_io/cigar.hpp>
 
 namespace pairhmm {
-biovoltron::Cigar NaivePairHMM::get_cigar() {}
-auto NaivePairHMM::get_S() {}
-auto NaivePairHMM::get_E() {}
-auto NaivePairHMM::get_F() {}
+template <typename T> biovoltron::Cigar NaivePairHMM<T>::get_cigar() {
+  return biovoltron::Cigar{};
+}
+template <typename T> table::ProbabilityTable<T> NaivePairHMM<T>::get_S() { return S; }
+template <typename T> table::ProbabilityTable<T> NaivePairHMM<T>::get_E() { return E; }
+template <typename T> table::ProbabilityTable<T> NaivePairHMM<T>::get_F() { return F; }
 } // namespace pairhmm
