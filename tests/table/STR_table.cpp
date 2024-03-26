@@ -3,7 +3,7 @@
 #include <cmath>
 #include <vector>
 
-TEST_CASE("table") {
+TEST_CASE("STR_table") {
   table::STRTable<double> table(2, 2);
   auto is_close = [](double a, double b) {
     return std::abs(a - b) < 1e-8;

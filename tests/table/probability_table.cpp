@@ -3,7 +3,7 @@
 #include <cmath>
 #include <vector>
 
-TEST_CASE("table") {
+TEST_CASE("probability_table") {
   auto is_close = [](double a, double b) {
     return std::abs(a - b) < 1e-8;
   };
@@ -85,8 +85,8 @@ TEST_CASE("is_close function") {
                                                   {4.5, 5.6, 6.7}};
   std::vector<std::vector<double>> new_table_2 = {{1, 2, 3}, {4, 5, 6}};
   SECTION("is_close") {
-    table::ProbabilityTable<double> table1(2, 2);
-    table::ProbabilityTable<double> table2(2, 2);
+    table::ProbabilityTable<double> table1(2, 3);
+    table::ProbabilityTable<double> table2(2, 3);
     table1.set_table(new_table_1);
     table2.set_table(new_table_2);
     REQUIRE(table::is_close(table1, table2, double{1}));

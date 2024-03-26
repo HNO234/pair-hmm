@@ -1,32 +1,73 @@
 #include "table/probability_table.hpp"
+#include <iostream>
 
 namespace table {
 template <typename T> ProbabilityTable<T> ProbabilityTable<T>::shifted_down() {
-  return (*this);
+  ProbabilityTable<T> ret(this->rows, this->columns);
+  for (auto i = size_t{}; i < this->rows; i++)
+    for (auto j = size_t{}; j < this->columns; j++)
+      if (i != 0) {
+        ret.set_cell(i, j, this->table[i - 1][j]);
+      } else {
+        ret.set_cell(i, j, 0);
+      }
+  return ret;
 }
 template <typename T> ProbabilityTable<T> ProbabilityTable<T>::shifted_right() {
-  return (*this);
+  ProbabilityTable<T> ret(this->rows, this->columns);
+  for (auto i = size_t{}; i < this->rows; i++)
+    for (auto j = size_t{}; j < this->columns; j++)
+      if (j != 0) {
+        ret.set_cell(i, j, this->table[i][j - 1]);
+      } else {
+        ret.set_cell(i, j, 0);
+      }
+  return ret;
 }
 template <typename T>
 ProbabilityTable<T>
 ProbabilityTable<T>::operator-(const ProbabilityTable &right_table) const {
-  return (*this);
+  ProbabilityTable<T> ret(this->rows, this->columns);
+  for (auto i = size_t{}; i < this->rows; i++)
+    for (auto j = size_t{}; j < this->columns; j++)
+        ret.set_cell(i, j, this->table[i][j] - right_table.get_cell(i, j));
+  return ret;
 }
 template <typename T>
 ProbabilityTable<T>
 ProbabilityTable<T>::operator+(const ProbabilityTable &right_table) const {
-  return (*this);
+  ProbabilityTable<T> ret(this->rows, this->columns);
+  for (auto i = size_t{}; i < this->rows; i++)
+    for (auto j = size_t{}; j < this->columns; j++)
+        ret.set_cell(i, j, this->table[i][j] + right_table.get_cell(i, j));
+  return ret;
 }
 
 template <typename T>
 bool is_close(ProbabilityTable<T> &table1, ProbabilityTable<T> &table2,
               T tolerance) {
-  return false;
+  if (table1.get_rows() != table2.get_rows())
+    return false;
+  if (table1.get_columns() != table2.get_columns())
+    return false;
+  for (auto i = size_t{}; i < table1.get_rows(); i++)
+    for (auto j = size_t{}; j < table1.get_columns(); j++)
+      if (abs(table1.get_cell(i, j) - table2.get_cell(i, j)) > tolerance)
+        return false;
+  return true;
 }
 
 template <>
 bool is_close(ProbabilityTable<double> &table1, ProbabilityTable<double> &table2,
               double tolerance) {
-  return false;
+  if (table1.get_rows() != table2.get_rows())
+    return false;
+  if (table1.get_columns() != table2.get_columns())
+    return false;
+  for (auto i = size_t{}; i < table1.get_rows(); i++)
+    for (auto j = size_t{}; j < table1.get_columns(); j++)
+      if (abs(table1.get_cell(i, j) - table2.get_cell(i, j)) > tolerance)
+        return false;
+  return true;
 }
 } // namespace table
