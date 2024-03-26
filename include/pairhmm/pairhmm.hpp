@@ -15,7 +15,7 @@ public:
   PairHMM();
   PairHMM(biovoltron::istring haplotype_, biovoltron::istring read_,
           table::STRTable<T> gop_, table::STRTable<T> gcp_);
-  std::tuple<std::vector<size_t>, std::vector<size_t>> get_haplotype_best_repeat();
+// vector of period, vector of repeat size
   std::tuple<std::vector<size_t>, std::vector<size_t>> get_read_best_repeat();
   virtual biovoltron::Cigar get_cigar() = 0;
 };
