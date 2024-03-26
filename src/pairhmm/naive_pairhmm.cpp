@@ -6,7 +6,6 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
-#include <iostream>
 
 namespace pairhmm {
 template <typename T>
