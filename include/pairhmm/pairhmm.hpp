@@ -18,6 +18,7 @@ public:
 // vector of period, vector of repeat size
   std::tuple<std::vector<size_t>, std::vector<size_t>> get_read_best_repeat();
   virtual biovoltron::Cigar get_cigar() = 0;
+  virtual void run_alignment() = 0;
 };
 
 template class PairHMM<double>;

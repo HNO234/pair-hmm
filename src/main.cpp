@@ -1,4 +1,5 @@
 #include "pairhmm/naive_pairhmm.hpp"
+#include "pairhmm/nw_pairhmm.hpp"
 #include "pairhmm/suzuki_pairhmm.hpp"
 #include "utils/constant.hpp"
 #include "utils/options.hpp"
@@ -36,11 +37,13 @@ int main(int argc, char **argv) {
   auto gop = pairhmm::standard_gop;
   auto gcp = pairhmm::standard_gcp;
   // Set pairHMM algorithm
-  std::variant<pairhmm::NaivePairHMM<double>, pairhmm::SuzukiPairHMM<double>>
-      pairhmm;
+  std::variant<pairhmm::NaivePairHMM<double>, pairhmm::NWPairHMM<double>,
+    pairhmm::SuzukiPairHMM<double>> pairhmm;
   auto algo = generic_vm["pairhmm-algorithm"].as<pairhmm::PairHMMAlgorithm>();
   if (algo == pairhmm::PairHMMAlgorithm::NAIVE) {
     pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
+  } else if (algo == pairhmm::PairHMMAlgorithm::NW) {
+    pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
   } else if (algo == pairhmm::PairHMMAlgorithm::SUZUKI_KASAHARA) {
     pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
   } else {

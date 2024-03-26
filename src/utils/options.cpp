@@ -10,6 +10,8 @@ std::istream &operator>>(std::istream &in, PairHMMAlgorithm &algorithm) {
   boost::to_upper(token);
   if (token == "NAIVE") {
     algorithm = PairHMMAlgorithm::NAIVE;
+  } else if (token == "NW") {
+    algorithm = PairHMMAlgorithm::NW;
   } else if (token == "SUZUKI_KASAHARA") {
     algorithm = PairHMMAlgorithm::SUZUKI_KASAHARA;
   } else {
@@ -27,7 +29,7 @@ auto options = [] { // {{{
           ->default_value(pairhmm::PairHMMAlgorithm::NAIVE, "NAIVE")
           ->value_name("ALGO"),
       "The PairHMM algorithm.\n"
-      "Valid arguments are NAIVE and SUZUKI_KASAHARA.");
+      "Valid arguments are NAIVE, NW and SUZUKI_KASAHARA.");
   return options;
 }(); // }}}
 

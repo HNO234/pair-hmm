@@ -1,4 +1,5 @@
 #include "pairhmm/naive_pairhmm.hpp"
+#include "pairhmm/nw_pairhmm.hpp"
 #include "pairhmm/suzuki_pairhmm.hpp"
 #include "utils/constant.hpp"
 #include <biovoltron/utility/istring.hpp>
@@ -39,7 +40,23 @@ TEST_CASE("test repeat") {
   REQUIRE(calculated_repeat_read == best_repeat);
 }
 
-// TEST_CASE("test cigar") {}
+TEST_CASE("test cigar") {
+  biovoltron::istring haplotype(20, 0), read(4, 0);
+  for (size_t i = size_t{}; i < 20; i++)
+    haplotype[i] = rand() % 4;
+  for (size_t i = size_t{}; i < 8; i++)
+    read[i] = rand() % 4;
+  auto gop = pairhmm::standard_gop;
+  auto gcp = pairhmm::standard_gcp;
+  auto naive_pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
+  auto nw_pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
+  auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
+  naive_pairhmm.run_alignment();
+  nw_pairhmm.run_alignment();
+  suzuki_pairhmm.run_alignment();
+  REQUIRE(naive_pairhmm.get_cigar() == nw_pairhmm.get_cigar());
+  REQUIRE(naive_pairhmm.get_cigar() == suzuki_pairhmm.get_cigar());
+}
 
 TEST_CASE("test tables") {
   biovoltron::istring haplotype(20, 0), read(4, 0);
@@ -49,13 +66,15 @@ TEST_CASE("test tables") {
     read[i] = rand() % 4;
   auto gop = pairhmm::standard_gop;
   auto gcp = pairhmm::standard_gcp;
-  auto naive_pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
+  auto nw_pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
   auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
-  auto S = naive_pairhmm.get_S();
+  nw_pairhmm.run_alignment();
+  suzuki_pairhmm.run_alignment();
+  auto S = nw_pairhmm.get_S();
   auto S_down = S.shifted_down();
   auto S_right = S.shifted_right();
-  auto E = naive_pairhmm.get_E();
-  auto F = naive_pairhmm.get_F();
+  auto E = nw_pairhmm.get_E();
+  auto F = nw_pairhmm.get_F();
   auto DeltaV_calculated = S - S_down;
   auto DeltaH_calculated = S - S_right;
   auto DeltaE_calculated = E - S;

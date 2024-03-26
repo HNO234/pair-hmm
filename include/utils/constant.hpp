@@ -3,7 +3,7 @@
 #include <vector>
 namespace pairhmm {
 
-enum PairHMMAlgorithm { NAIVE, SUZUKI_KASAHARA };
+enum PairHMMAlgorithm { NAIVE, NW, SUZUKI_KASAHARA };
 
 extern std::vector<std::vector<double>> standard_gop_vector;
 

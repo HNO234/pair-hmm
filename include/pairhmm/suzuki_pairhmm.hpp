@@ -12,6 +12,7 @@ private:
 public:
   using PairHMM<T>::PairHMM;
   biovoltron::Cigar get_cigar();
+  void run_alignment();
   table::ProbabilityTable<T> get_A();
   table::ProbabilityTable<T> get_DeltaH();
   table::ProbabilityTable<T> get_DeltaV();
