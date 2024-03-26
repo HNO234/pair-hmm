@@ -36,6 +36,7 @@ TEST_CASE("test repeat") {
   // REQUIRE(calculated_repeat_haplotype == best_repeat);
   auto [calculated_period_read, calculated_repeat_read] =
       pairhmm_instance.get_read_best_repeat();
+  REQUIRE(calculated_period_read.size() == best_period.size());
   REQUIRE(calculated_period_read == best_period);
   REQUIRE(calculated_repeat_read == best_repeat);
 }

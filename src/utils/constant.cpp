@@ -52,4 +52,6 @@ table::STRTable<double> standard_gcp =
 
 std::vector<std::vector<double>> base_match_prob = {
     {2, 13, 13, 13}, {13, 2, 13, 13}, {13, 13, 2, 13}, {13, 13, 13, 2}};
+
+double mismatch_prob = 8;
 } // namespace pairhmm

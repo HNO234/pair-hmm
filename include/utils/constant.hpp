@@ -17,4 +17,5 @@ extern table::STRTable<double> standard_gcp;
 
 extern std::vector<std::vector<double>> base_match_prob;
 
+extern double mismatch_prob;
 } // namespace pairhmm

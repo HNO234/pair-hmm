@@ -85,6 +85,10 @@ bpo::variables_map argparse(int argc, char **argv) {
     std::cerr << help_options << std::endl;
     exit(1);
   }
+  if (!vm.count("haplotype-fasta") || !vm.count("read-fasta")) {
+    std::cerr << help_options << std::endl;
+    exit(1);
+  }
   return vm;
 }
 } // namespace pairhmm

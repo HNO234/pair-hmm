@@ -13,11 +13,12 @@ PairHMM<T>::PairHMM(biovoltron::istring haplotype_, biovoltron::istring read_,
 template <typename T>
 std::tuple<std::vector<size_t>, std::vector<size_t>>
 PairHMM<T>::get_read_best_repeat() {
-  std::vector<size_t> best_period(haplotype.size()), best_size(read.size());
+  std::vector<size_t> best_period(haplotype.size() + 1), best_size(read.size() + 1);
+  auto i = 0;
   for (auto &period: best_period)
-    period = rand() % 8 + 1;
+    period = (i++) % 8 + 1;
   for (auto &size: best_size)
-    size = rand() % 20 + 1;
+    size = (i++) % 20 + 1;
   return std::make_tuple(best_period, best_size);
 }
 } // namespace pairhmm

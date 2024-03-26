@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   std::ranges::transform(haplotype, haplotype.begin(),
                          [](auto &c) { return c % 4; });
   // Set read
-  auto read_fa = std::ifstream{generic_vm["read-fatsa"].as<std::string>()};
+  auto read_fa = std::ifstream{generic_vm["read-fasta"].as<std::string>()};
   auto read = biovoltron::istring{};
   auto read_refs =
       std::ranges::istream_view<biovoltron::FastaRecord<true>>(read_fa);
@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
     throw std::invalid_argument("Invalid pairHMM algorithm");
   }
   // Get cigar
-  auto cigar =
-      std::visit([](auto &&pairhmm) { return pairhmm.get_cigar(); }, pairhmm);
+  auto cigar = std::visit([](auto &&pairhmm) {
+    pairhmm.run_alignment();
+    return pairhmm.get_cigar(); }, pairhmm);
   std::cout << std::string(cigar) << std::endl;
 }
