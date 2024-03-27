@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <iostream>
 
 namespace pairhmm {
 template <typename T>
@@ -43,9 +44,9 @@ template <typename T> biovoltron::Cigar NaivePairHMM<T>::get_cigar() {
       auto epislon_j_minus_1 = (j ? std::pow(10, -0.1 * this->gcp.get_cell(best_period_j_minus_1 - 1, best_repeat_j_minus_1 - 1)) : 0);
     if (state == 'M') { // M
       auto match_prob = (i && j ? base_match_prob[this->haplotype[i - 1]][this->read[j - 1]] : 0);
-      auto M_match = (i && j ? M.get_cell(i - 1, j - 1) + std::log(1 - 2 * delta_j_minus_1) - 0.1 * match_prob : neg_infty);
-      auto M_deletion = (i ? D.get_cell(i - 1, j) + std::log(1 - epsilon_j) - 0.1 * mismatch_prob : neg_infty);
-      auto M_insertion = (j ? I.get_cell(i, j - 1) + std::log(1 - epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
+      auto M_match = (i && j ? M.get_cell(i - 1, j - 1) + std::log10(1 - 2 * delta_j_minus_1) - 0.1 * match_prob : neg_infty);
+      auto M_deletion = (i ? D.get_cell(i - 1, j) + std::log10(1 - epsilon_j) - 0.1 * mismatch_prob : neg_infty);
+      auto M_insertion = (j ? I.get_cell(i, j - 1) + std::log10(1 - epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
       if (is_close(M_match, M.get_cell(i, j))) {
         i--, j--;
         state = 'M';
@@ -60,8 +61,8 @@ template <typename T> biovoltron::Cigar NaivePairHMM<T>::get_cigar() {
         return_cigar.emplace_back(1, 'I');
       }
     } else if (state == 'I') { // I
-      auto I_gap_open = M.get_cell(i, j) + std::log(delta_j);
-      auto I_gap_continue = (j ? I.get_cell(i, j - 1) + std::log(epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
+      auto I_gap_open = M.get_cell(i, j) + std::log10(delta_j);
+      auto I_gap_continue = (j ? I.get_cell(i, j - 1) + std::log10(epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
       if (is_close(I_gap_open, I.get_cell(i, j))) {
         state = 'M';
       } else if (is_close(I_gap_continue, I.get_cell(i, j))) {
@@ -70,8 +71,8 @@ template <typename T> biovoltron::Cigar NaivePairHMM<T>::get_cigar() {
         return_cigar.emplace_back(1, 'I');
       }
     } else if (state == 'D') { // D
-      auto D_gap_open = M.get_cell(i, j) + std::log(delta_j);
-      auto D_gap_continue = (i ? D.get_cell(i - 1, j) + std::log(epsilon_j) - 0.1 * mismatch_prob : neg_infty);
+      auto D_gap_open = M.get_cell(i, j) + std::log10(delta_j);
+      auto D_gap_continue = (i ? D.get_cell(i - 1, j) + std::log10(epsilon_j) - 0.1 * mismatch_prob : neg_infty);
       if (is_close(D_gap_open, D.get_cell(i, j))) {
         state = 'M';
       } else if (is_close(D_gap_continue, D.get_cell(i, j))) {
@@ -94,12 +95,6 @@ template <typename T> void NaivePairHMM<T>::run_alignment() {
   auto neg_infty = std::numeric_limits<double>::lowest();
   for (auto i = size_t{}; i <= haplotype_size; i++)
     for (auto j = size_t{}; j <= read_size; j++) {
-      if (i == 0 && j == 0) {
-        M.set_cell(i, j, 0);
-        I.set_cell(i, j, neg_infty);
-        D.set_cell(i, j, neg_infty);
-        continue;
-      }
       auto best_period_j = period_read[j];
       auto best_period_j_minus_1 = (j ? period_read[j - 1] : 0);
       auto best_repeat_j = repeat_read[j];
@@ -109,18 +104,22 @@ template <typename T> void NaivePairHMM<T>::run_alignment() {
       auto epsilon_j = std::pow(10, -0.1 * this->gcp.get_cell(best_period_j - 1, best_repeat_j - 1));
       auto epislon_j_minus_1 = (j ? std::pow(10, -0.1 * this->gcp.get_cell(best_period_j_minus_1 - 1, best_repeat_j_minus_1 - 1)) : 0);
       // Update M
-      auto match_prob = (i && j ? base_match_prob[this->haplotype[i - 1]][this->read[j - 1]] : 0);
-      auto M_match = (i && j ? M.get_cell(i - 1, j - 1) + std::log(1 - 2 * delta_j_minus_1) - 0.1 * match_prob : neg_infty);
-      auto M_deletion = (i ? D.get_cell(i - 1, j) + std::log(1 - epsilon_j) - 0.1 * mismatch_prob : neg_infty);
-      auto M_insertion = (j ? I.get_cell(i, j - 1) + std::log(1 - epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
-      M.set_cell(i, j, std::max({M_match, M_deletion, M_insertion}));
+      if (i == 0 && j == 0) {
+        M.set_cell(i, j, 0);
+      } else {
+        auto match_prob = (i && j ? base_match_prob[this->haplotype[i - 1]][this->read[j - 1]] : 0);
+        auto M_match = (i && j ? M.get_cell(i - 1, j - 1) + std::log10(1 - 2 * delta_j_minus_1) - 0.1 * match_prob : neg_infty);
+        auto M_deletion = (i ? D.get_cell(i - 1, j) + std::log10(1 - epsilon_j) - 0.1 * mismatch_prob : neg_infty);
+        auto M_insertion = (j ? I.get_cell(i, j - 1) + std::log10(1 - epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
+        M.set_cell(i, j, std::max({M_match, M_deletion, M_insertion}));
+      }
       // Update D
-      auto D_gap_open = M.get_cell(i, j) + std::log(delta_j);
-      auto D_gap_continue = (i ? D.get_cell(i - 1, j) + std::log(epsilon_j) - 0.1 * mismatch_prob : neg_infty);
+      auto D_gap_open = M.get_cell(i, j) + std::log10(delta_j);
+      auto D_gap_continue = (i ? D.get_cell(i - 1, j) + std::log10(epsilon_j) - 0.1 * mismatch_prob : neg_infty);
       D.set_cell(i, j, std::max({D_gap_open, D_gap_continue}));
       // Update I
-      auto I_gap_open = M.get_cell(i, j) + std::log(delta_j);
-      auto I_gap_continue = (j ? I.get_cell(i, j - 1) + std::log(epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
+      auto I_gap_open = M.get_cell(i, j) + std::log10(delta_j);
+      auto I_gap_continue = (j ? I.get_cell(i, j - 1) + std::log10(epislon_j_minus_1) - 0.1 * mismatch_prob : neg_infty);
       I.set_cell(i, j, std::max(I_gap_open, I_gap_continue));
   }
 }

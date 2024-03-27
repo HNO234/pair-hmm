@@ -42,6 +42,15 @@ ProbabilityTable<T>::operator+(const ProbabilityTable &right_table) const {
         ret.set_cell(i, j, this->table[i][j] + right_table.get_cell(i, j));
   return ret;
 }
+template <typename T>
+ProbabilityTable<T>
+ProbabilityTable<T>::operator*(const T &rhs) const {
+  ProbabilityTable<T> ret(this->rows, this->columns);
+  for (auto i = size_t{}; i < this->rows; i++)
+    for (auto j = size_t{}; j < this->columns; j++)
+        ret.set_cell(i, j, this->table[i][j] * rhs);
+  return ret;
+}
 
 template <typename T>
 bool is_close(ProbabilityTable<T> &table1, ProbabilityTable<T> &table2,
@@ -50,8 +59,8 @@ bool is_close(ProbabilityTable<T> &table1, ProbabilityTable<T> &table2,
     return false;
   if (table1.get_columns() != table2.get_columns())
     return false;
-  for (auto i = size_t{}; i < table1.get_rows(); i++)
-    for (auto j = size_t{}; j < table1.get_columns(); j++)
+  for (auto i = size_t{1}; i < table1.get_rows(); i++)
+    for (auto j = size_t{1}; j < table1.get_columns(); j++)
       if (abs(table1.get_cell(i, j) - table2.get_cell(i, j)) > tolerance)
         return false;
   return true;
@@ -64,8 +73,8 @@ bool is_close(ProbabilityTable<double> &table1, ProbabilityTable<double> &table2
     return false;
   if (table1.get_columns() != table2.get_columns())
     return false;
-  for (auto i = size_t{}; i < table1.get_rows(); i++)
-    for (auto j = size_t{}; j < table1.get_columns(); j++)
+  for (auto i = size_t{1}; i < table1.get_rows(); i++)
+    for (auto j = size_t{1}; j < table1.get_columns(); j++)
       if (abs(table1.get_cell(i, j) - table2.get_cell(i, j)) > tolerance)
         return false;
   return true;

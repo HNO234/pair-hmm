@@ -10,6 +10,7 @@ public:
   ProbabilityTable<T> shifted_right();
   ProbabilityTable<T> operator-(const ProbabilityTable<T> &right_table) const;
   ProbabilityTable<T> operator+(const ProbabilityTable<T> &right_table) const;
+  ProbabilityTable<T> operator*(const T &rhs) const;
 };
 
 template <typename T>

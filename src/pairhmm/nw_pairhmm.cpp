@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <iostream>
 
 namespace pairhmm {
 template <typename T>
@@ -137,17 +138,15 @@ template <typename T> void NWPairHMM<T>::run_alignment() {
   auto infty = std::numeric_limits<double>::max();
   for (auto i = size_t{}; i <= haplotype_size; i++)
     for (auto j = size_t{}; j <= read_size; j++) {
+      // Update M
       if (i == 0 && j == 0) {
         S.set_cell(i, j, 0);
-        E.set_cell(i, j, infty);
-        F.set_cell(i, j, infty);
-        continue;
+      } else {
+        auto S_match = (i && j ? S.get_cell(i - 1, j - 1) + s(i, j) : infty);
+        auto S_deletion = (i ? E.get_cell(i - 1, j) + cH(j) : infty);
+        auto S_insertion = (j ? F.get_cell(i, j - 1) + cV(j) : infty);
+        S.set_cell(i, j, std::min({S_match, S_deletion, S_insertion}));
       }
-      // Update M
-      auto S_match = (i && j ? S.get_cell(i - 1, j - 1) + s(i, j) : infty);
-      auto S_deletion = (i ? E.get_cell(i - 1, j) + cH(j) : infty);
-      auto S_insertion = (j ? F.get_cell(i, j - 1) + cV(j) : infty);
-      S.set_cell(i, j, std::min({S_match, S_deletion, S_insertion}));
       // Update D
       auto E_gap_open = S.get_cell(i, j) + oH(j);
       auto E_gap_continue = (i ? E.get_cell(i - 1, j) + eH(j) : infty);

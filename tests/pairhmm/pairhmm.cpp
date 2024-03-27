@@ -5,7 +5,7 @@
 #include <biovoltron/utility/istring.hpp>
 #include <catch_amalgamated.hpp>
 #include <cmath>
-#include <random>
+#include <experimental/random>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -44,7 +44,7 @@ TEST_CASE("test repeat") {
 TEST_CASE("test cigar") {
   biovoltron::istring haplotype(20, 0), read(4, 0);
   for (size_t i = size_t{}; i < 20; i++)
-    haplotype[i] = rand() % 4;
+    haplotype[i] = std::experimental::randint(0, 3);
   for (size_t i = size_t{}; i < 8; i++)
     read[i] = rand() % 4;
   auto gop = pairhmm::standard_gop;
@@ -60,24 +60,35 @@ TEST_CASE("test cigar") {
 }
 
 TEST_CASE("test tables") {
-  biovoltron::istring haplotype(20, 0), read(4, 0);
-  for (size_t i = size_t{}; i < 20; i++)
-    haplotype[i] = rand() % 4;
-  for (size_t i = size_t{}; i < 8; i++)
-    read[i] = rand() % 4;
+  // data preparation
+  biovoltron::istring haplotype(64, 0), read(16, 0);
+  for (size_t i = size_t{}; i < 64; i++)
+    haplotype[i] = std::experimental::randint(0, 3);
+  for (size_t i = size_t{}; i < 16; i++)
+    read[i] = std::experimental::randint(0, 3);
   auto gop = pairhmm::standard_gop;
   auto gcp = pairhmm::standard_gcp;
+  // run alignment
+  auto naive_pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
   auto nw_pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
   auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
+  naive_pairhmm.run_alignment();
   nw_pairhmm.run_alignment();
   suzuki_pairhmm.run_alignment();
+  // get tables
+  auto M = naive_pairhmm.get_M();
+  auto I = naive_pairhmm.get_I();
+  auto D = naive_pairhmm.get_D();
+  auto S_calculated = M * (-10);
+  auto E_calculated = D * (-10);
+  auto F_calculated = I * (-10);
   auto S = nw_pairhmm.get_S();
   auto S_down = S.shifted_down();
   auto S_right = S.shifted_right();
   auto E = nw_pairhmm.get_E();
   auto F = nw_pairhmm.get_F();
-  auto DeltaV_calculated = S - S_down;
-  auto DeltaH_calculated = S - S_right;
+  auto DeltaV_calculated = S - S_right;
+  auto DeltaH_calculated = S - S_down;
   auto DeltaE_calculated = E - S;
   auto DeltaF_calculated = F - S;
   auto DeltaEp_calculated = DeltaE_calculated + DeltaV_calculated;
@@ -87,7 +98,10 @@ TEST_CASE("test tables") {
   auto DeltaH = suzuki_pairhmm.get_DeltaH();
   auto DeltaEp = suzuki_pairhmm.get_DeltaEp();
   auto DeltaFp = suzuki_pairhmm.get_DeltaFp();
-
+  // check table consistency
+  REQUIRE(table::is_close(S_calculated, S, 1e-8));
+  REQUIRE(table::is_close(E_calculated, E, 1e-8));
+  REQUIRE(table::is_close(F_calculated, F, 1e-8));
   REQUIRE(table::is_close(DeltaV_calculated, DeltaV, 1e-8));
   REQUIRE(table::is_close(DeltaH_calculated, DeltaH, 1e-8));
   REQUIRE(table::is_close(DeltaEp_calculated, DeltaEp, 1e-8));

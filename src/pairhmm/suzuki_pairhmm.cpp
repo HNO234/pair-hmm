@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <iostream>
 
 namespace pairhmm {
 template <typename T>
@@ -79,25 +80,24 @@ T SuzukiPairHMM<T>::cV(size_t j) {
   return phred_1_minus_epislon_j_minus_1 + mismatch_prob;
 }
 template <typename T> biovoltron::Cigar SuzukiPairHMM<T>::get_cigar() {
-  throw std::logic_error("Function not yet implemented");
-  return biovoltron::Cigar{};
-  // auto haplotype_size = this->haplotype.size();
-  // auto read_size = this->read.size();
-  // auto S = table::ProbabilityTable<T>(haplotype_size + 1, read_size + 1);
-  // auto E = table::ProbabilityTable<T>(haplotype_size + 1, read_size + 1);
-  // auto F = table::ProbabilityTable<T>(haplotype_size + 1, read_size + 1);
-  // for (auto j = size_t{1}; j <= read_size; j++) {
-  //   S.set_cell(0, j, S.get_cell(0, j - 1) + DeltaV.get_cell(0, j));
-  // }
-  // for (auto i = size_t{1}; i <= haplotype_size; i++)
-  //   for (auto j = size_t{}; j <= read_size; j++)
-  //     S.set_cell(i, j, S.get_cell(i - 1, j) + DeltaH.get_cell(i, j));
-  // for (auto i = size_t{1}; i <= haplotype_size; i++)
-  //   for (auto j = size_t{}; j <= read_size; j++)
-  //     E.set_cell(i, j, DeltaEp.get_cell(i, j) + S.get_cell(i - 1, j));
-  // for (auto i = size_t{}; i <= haplotype_size; i++)
-  //   for (auto j = size_t{1}; j <= read_size; j++)
-  //     F.set_cell(i, j, DeltaFp.get_cell(i, j) + S.get_cell(i, j - 1));
+  // throw std::logic_error("Function not yet implemented");
+  auto haplotype_size = this->haplotype.size();
+  auto read_size = this->read.size();
+  auto S = table::ProbabilityTable<T>(haplotype_size + 1, read_size + 1);
+  auto E = table::ProbabilityTable<T>(haplotype_size + 1, read_size + 1);
+  auto F = table::ProbabilityTable<T>(haplotype_size + 1, read_size + 1);
+  for (auto j = size_t{1}; j <= read_size; j++) {
+    S.set_cell(0, j, S.get_cell(0, j - 1) + DeltaV.get_cell(0, j));
+  }
+  for (auto i = size_t{1}; i <= haplotype_size; i++)
+    for (auto j = size_t{}; j <= read_size; j++)
+      S.set_cell(i, j, S.get_cell(i - 1, j) + DeltaH.get_cell(i, j));
+  for (auto i = size_t{}; i <= haplotype_size; i++)
+    for (auto j = size_t{1}; j <= read_size; j++)
+      E.set_cell(i, j, DeltaEp.get_cell(i, j) + S.get_cell(i, j - 1));
+  for (auto i = size_t{1}; i <= haplotype_size; i++)
+    for (auto j = size_t{}; j <= read_size; j++)
+      F.set_cell(i, j, DeltaFp.get_cell(i, j) + S.get_cell(i - 1, j));
   
   // auto neg_infty = std::numeric_limits<double>::lowest();
   // auto i = haplotype_size, j = read_size;
@@ -168,6 +168,7 @@ template <typename T> biovoltron::Cigar SuzukiPairHMM<T>::get_cigar() {
   // return_cigar.reverse();
   // return_cigar.compact();
   // return return_cigar;
+  return biovoltron::Cigar{};
 }
 template <typename T> void SuzukiPairHMM<T>::run_alignment() {
   // throw std::logic_error("Function not yet implemented");
@@ -182,7 +183,7 @@ template <typename T> void SuzukiPairHMM<T>::run_alignment() {
     if (i == 1)
       accumulated_gap_penalty_j_0 = (oH(0) + cH(0));
     else
-      accumulated_gap_penalty_j_0 = (-cH(0) + eH(0) + cH(0));
+      accumulated_gap_penalty_j_0 += (-cH(0) + eH(0) + cH(0));
     DeltaH.set_cell(i, 0, accumulated_gap_penalty_j_0 - last_gap_penalty_j_0);
     last_gap_penalty_j_0 = accumulated_gap_penalty_j_0;
     // Calculate DeltaFp
@@ -194,13 +195,13 @@ template <typename T> void SuzukiPairHMM<T>::run_alignment() {
   for (auto j = size_t{1}; j <= read_size; j++) {
     // Calculate DeltaV
     if (j == 1)
-      accumulated_gap_penalty_i_0 = (oV(j) + cV(j));
+      accumulated_gap_penalty_i_0 = (oV(j - 1) + cV(j));
     else
-      accumulated_gap_penalty_i_0 = (-cV(j - 1) + eV(j) + cV(j));
+      accumulated_gap_penalty_i_0 += (-cV(j - 1) + eV(j - 1) + cV(j));
     DeltaV.set_cell(0, j, accumulated_gap_penalty_i_0 - last_gap_penalty_i_0);
     last_gap_penalty_i_0 = accumulated_gap_penalty_i_0;
     // Calculate DeltaEp
-    DeltaFp.set_cell(0, j, DeltaV.get_cell(0, j) + oH(j));
+    DeltaEp.set_cell(0, j, DeltaV.get_cell(0, j) + oH(j));
   }
   for (auto i = size_t{1}; i <= haplotype_size; i++)
     for (auto j = size_t{1}; j <= read_size; j++) {
@@ -212,7 +213,7 @@ template <typename T> void SuzukiPairHMM<T>::run_alignment() {
       DeltaEp.set_cell(i, j, std::min({A.get_cell(i, j) + oH(j),
         DeltaEp.get_cell(i - 1, j) + eH(j)}) - DeltaH.get_cell(i, j - 1));
       DeltaFp.set_cell(i, j, std::min({A.get_cell(i, j) + oV(j),
-        DeltaFp.get_cell(i - 1, j) + eV(j)}) - DeltaV.get_cell(i - 1, j));
+        DeltaFp.get_cell(i, j - 1) + eV(j)}) - DeltaV.get_cell(i - 1, j));
   }
 }
 template <typename T> table::ProbabilityTable<T> SuzukiPairHMM<T>::get_A() { return A; }
