@@ -1,10 +1,10 @@
-#include "pairhmm/naive_pairhmm.hpp"
-#include "pairhmm/nw_pairhmm.hpp"
 #include "pairhmm/suzuki_pairhmm.hpp"
+#include "pairhmm/fixed_point_suzuki_pairhmm.hpp"
 #include "utils/constant.hpp"
 #include "utils/options.hpp"
 #include <biovoltron/file_io/fasta.hpp>
 #include <biovoltron/utility/istring.hpp>
+#include <biovoltron/file_io/bam.hpp>
 #include <boost/program_options.hpp>
 #include <exception>
 #include <fstream>
@@ -12,46 +12,29 @@
 #include <ranges>
 #include <string>
 #include <variant>
+#include <iomanip>
+#include "utils/utils.hpp"
 
 int main(int argc, char **argv) {
   auto generic_vm = pairhmm::argparse(argc, argv);
   // Set haplotype
-  auto haplotype_fa =
-      std::ifstream{generic_vm["haplotype-fasta"].as<std::string>()};
-  auto haplotype = biovoltron::istring{};
-  auto haplotype_refs =
-      std::ranges::istream_view<biovoltron::FastaRecord<true>>(haplotype_fa);
-  for (auto &ref : haplotype_refs)
-    haplotype += ref.seq;
-  std::ranges::transform(haplotype, haplotype.begin(),
-                         [](auto &c) { return c % 4; });
+  auto haplotype_fa = generic_vm["haplotype-fasta"].as<std::string>();
+  auto haplotype = pairhmm::get_haplotype(haplotype_fa);
   // Set read
-  auto read_fa = std::ifstream{generic_vm["read-fasta"].as<std::string>()};
-  auto read = biovoltron::istring{};
-  auto read_refs =
-      std::ranges::istream_view<biovoltron::FastaRecord<true>>(read_fa);
-  for (auto &ref : read_refs)
-    read += ref.seq;
-  std::ranges::transform(read, read.begin(), [](auto &c) { return c % 4; });
+  auto read_bam = std::filesystem::path(generic_vm["read-bam"].as<std::string>());
+  auto reads = pairhmm::get_reads(read_bam);
+  // reads.resize(10);
   // Set GOP & GCP
-  auto gop = pairhmm::standard_gop;
-  auto gcp = pairhmm::standard_gcp;
+  auto tables_file_name = generic_vm["tables"].as<std::string>();
+  auto [gop, gcp] = pairhmm::get_gop_gcp(tables_file_name);
   // Set pairHMM algorithm
-  std::variant<pairhmm::NaivePairHMM<double>, pairhmm::NWPairHMM<double>,
-    pairhmm::SuzukiPairHMM<double>> pairhmm;
-  auto algo = generic_vm["pairhmm-algorithm"].as<pairhmm::PairHMMAlgorithm>();
-  if (algo == pairhmm::PairHMMAlgorithm::NAIVE) {
-    pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
-  } else if (algo == pairhmm::PairHMMAlgorithm::NW) {
-    pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
-  } else if (algo == pairhmm::PairHMMAlgorithm::SUZUKI_KASAHARA) {
-    pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
-  } else {
-    throw std::invalid_argument("Invalid pairHMM algorithm");
+  std::cout << std::fixed << std::setprecision(15);
+  for (auto &read_record : reads) {
+    auto read = biovoltron::Codec::to_istring(read_record.seq);
+    auto scores = pairhmm::score_to_phred(read_record.qual);
+    auto pairhmm_sz = pairhmm::SuzukiPairHMM<long double>(haplotype, read, gop, gcp, scores);
+    auto pairhmm_fixed = pairhmm::FixedPointSuzukiPairHMM<long double>(haplotype, read, gop, gcp, scores);
+    auto sz_align_score = pairhmm_sz.get_align_score();
+    auto fixed_align_score = pairhmm_fixed.get_align_score();
   }
-  // Get cigar
-  auto cigar = std::visit([](auto &&pairhmm) {
-    pairhmm.run_alignment();
-    return pairhmm.get_cigar(); }, pairhmm);
-  std::cout << std::string(cigar) << std::endl;
 }

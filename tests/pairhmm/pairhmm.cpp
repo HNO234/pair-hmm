@@ -9,22 +9,23 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <iostream>
 
 bool is_close(double a, double b) { return std::abs(a - b) < 1e-8; }
 
 TEST_CASE("test repeat") {
   std::string s = "ATTTTTTCAATGTTTACACATTTCCTTCCTCCCTCCCTCCTTCCTTTCCTCCCTTCCTCC"
                   "CTTCCTCCCTTCCTTCCTGTTTGCTTTATTATTGTATTG";
-  std::vector<size_t> best_period = {
+  std::vector<size_t> best_period = {1, 
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1,
       1, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 8, 8, 1,
       1, 1, 1, 8, 8, 8, 8, 1, 1, 1, 1, 8, 8, 8, 8, 1, 1, 1, 1, 8, 8, 8, 8, 8, 1,
-      1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1};
-  std::vector<size_t> best_repeat = {
+      1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1};
+  std::vector<size_t> best_repeat = {1, 
       6, 6, 6, 6, 6, 6, 6, 2, 2, 2, 1, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2,
       2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
       3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2,
-      2, 2, 2, 3, 3, 3, 3, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+      2, 2, 2, 3, 3, 3, 3, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1};
   auto haplotype = biovoltron::Codec::to_istring(std::string_view(s));
   auto read = biovoltron::Codec::to_istring(std::string_view(s));
   auto gop = pairhmm::standard_gop;
@@ -51,7 +52,8 @@ TEST_CASE("test cigar") {
   auto gcp = pairhmm::standard_gcp;
   auto naive_pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
   auto nw_pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
-  auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
+  std::vector<int> score;
+  auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp, score);
   naive_pairhmm.run_alignment();
   nw_pairhmm.run_alignment();
   suzuki_pairhmm.run_alignment();
@@ -71,7 +73,8 @@ TEST_CASE("test tables") {
   // run alignment
   auto naive_pairhmm = pairhmm::NaivePairHMM<double>(haplotype, read, gop, gcp);
   auto nw_pairhmm = pairhmm::NWPairHMM<double>(haplotype, read, gop, gcp);
-  auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp);
+  std::vector<int> score;
+  auto suzuki_pairhmm = pairhmm::SuzukiPairHMM<double>(haplotype, read, gop, gcp, score);
   naive_pairhmm.run_alignment();
   nw_pairhmm.run_alignment();
   suzuki_pairhmm.run_alignment();

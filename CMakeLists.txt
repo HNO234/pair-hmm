@@ -17,11 +17,12 @@ include_directories(${Boost_INCLUDE_DIRS} )
 add_subdirectory(${PROJECT_SOURCE_DIR}/submodules/biovoltron)
 
 # Link your source code to your project
-file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES src/main.cpp)
 add_executable(pairhmm ${SOURCE_FILES})
 target_compile_options(pairhmm PRIVATE -g)
 target_include_directories(pairhmm PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(pairhmm PRIVATE ${PROJECT_SOURCE_DIR}/submodules/biovoltron/include)
+target_include_directories(pairhmm PRIVATE ${PROJECT_SOURCE_DIR}/submodules/biovoltron/submodules/htslib)
 target_link_libraries(pairhmm PRIVATE ${Boost_LIBRARIES} )
 target_link_libraries(pairhmm PRIVATE biovoltron)
 
