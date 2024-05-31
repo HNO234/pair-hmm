@@ -37,8 +37,8 @@ namespace pairhmm {
         while (fin >> record) {
             records.emplace_back(record);
             cnt++;
-            if (cnt > 10)
-                break;
+            // if (cnt > 10)
+            //     break;
         }
         return records;
     }
